@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مولّد المحتوى — Nuba AI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0A0A0A;--surface:#111318;--card:#181C24;--border:#252A35;--gold:#C9A84C;--gold-light:#E8C96A;--white:#F0EDE8;--muted:#6B7280}
+body{font-family:'Tajawal',sans-serif;background:var(--black);color:var(--white);min-height:100vh;padding:24px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+.logo{font-size:20px;font-weight:900}.logo span{color:var(--gold)}
+.back{color:var(--gold);text-decoration:none;font-size:14px}
+h1{font-size:28px;font-weight:900;margin-bottom:8px}
+h1 em{font-style:normal;color:var(--gold)}
+.subtitle{color:var(--muted);font-size:15px;margin-bottom:32px}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500}
+input,select,textarea{width:100%;background:#0D1117;border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--white);font-family:'Tajawal',sans-serif;font-size:15px;margin-bottom:20px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{min-height:80px;resize:vertical}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.btn{width:100%;padding:16px;background:var(--gold);color:#000;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:900;cursor:pointer;transition:opacity 0.2s}
+.btn:hover{opacity:0.85}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.output{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-top:24px;display:none}
+.output h2{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--gold)}
+.post-item{background:#0D1117;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;white-space:pre-wrap;font-size:14px;line-height:1.8}
+.copy-btn{margin-top:8px;padding:6px 14px;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:13px}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Nuba <span>AI</span></div>
+  <a href="/" class="back">← العودة للرئيسية</a>
+</header>
+<h1>مولّد <em>المحتوى التسويقي</em></h1>
+<p class="subtitle">أدخل بيانات العميل واحصل على محتوى جاهز للنشر فوراً</p>
+
+<div class="form-card">
+  <div class="grid-2">
+    <div>
+      <label>اسم العميل / الشركة</label>
+      <input type="text" id="clientName" placeholder="مثال: مطعم البيت السعودي">
+    </div>
+    <div>
+      <label>نوع النشاط التجاري</label>
+      <input type="text" id="businessType" placeholder="مثال: مطعم، عيادة، متجر ملابس">
+    </div>
+  </div>
+  <label>وصف مختصر للعميل وميزته التنافسية</label>
+  <textarea id="description" placeholder="مثال: مطعم متخصص في الأكل الشعبي السعودي، يقدم وجبات طازجة بأسعار مناسبة، يستهدف العائلات في الرياض"></textarea>
+  <div class="grid-2">
+    <div>
+      <label>المنصة المستهدفة</label>
+      <select id="platform">
+        <option value="انستغرام">انستغرام</option>
+        <option value="تويتر/X">تويتر / X</option>
+        <option value="تيك توك">تيك توك</option>
+        <option value="لينكدإن">لينكدإن</option>
+        <option value="جميع المنصات">جميع المنصات</option>
+      </select>
+    </div>
+    <div>
+      <label>عدد البوستات المطلوبة</label>
+      <select id="postCount">
+        <option value="5">5 بوستات</option>
+        <option value="10" selected>10 بوستات</option>
+        <option value="20">20 بوست</option>
+        <option value="30">30 بوست</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn" onclick="generateContent()" id="genBtn">⚡ توليد المحتوى الآن</button>
+</div>
+
+<div class="output" id="output">
+  <h2>📋 المحتوى الجاهز للنشر</h2>
+  <div id="posts"></div>
+</div>
+
+<script>
+async function generateContent() {
+  const clientName = document.getElementById('clientName').value.trim();
+  const businessType = document.getElementById('businessType').value.trim();
+  const description = document.getElementById('description').value.trim();
+  const platform = document.getElementById('platform').value;
+  const postCount = document.getElementById('postCount').value;
+
+  if (!clientName || !businessType) {
+    alert('يرجى إدخال اسم العميل ونوع النشاط');
+    return;
+  }
+
+  const btn = document.getElementById('genBtn');
+  const output = document.getElementById('output');
+  const postsDiv = document.getElementById('posts');
+  
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التوليد...';
+  output.style.display = 'block';
+  postsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><br>الذكاء الاصطناعي يكتب المحتوى...</div>';
+
+  const prompt = `أنت خبير تسويق رقمي متخصص في السوق السعودي والخليجي.
+
+اكتب ${postCount} بوست تسويقي احترافي لـ:
+- اسم العميل: ${clientName}
+- نوع النشاط: ${businessType}
+- تفاصيل: ${description || 'نشاط تجاري في السوق السعودي'}
+- المنصة: ${platform}
+
+متطلبات كل بوست:
+- باللغة العربية الفصحى المبسطة
+- جذاب ويثير التفاعل
+- يناسب الجمهور السعودي والخليجي
+- يتضمن call-to-action واضح
+- يتضمن 5-8 هاشتاقات مناسبة
+- طول مناسب للمنصة
+
+اكتب البوستات مرقمة من 1 إلى ${postCount}، افصل بين كل بوست بـ ---`;
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt, 
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.choices[0].message.content;
+    const posts = text.split('---').filter(p => p.trim());
+
+    postsDiv.innerHTML = posts.map((post, i) => `
+      <div class="post-item">
+        ${post.trim()}
+        <br>
+        <button class="copy-btn" onclick="copyPost(this, ${i})">📋 نسخ</button>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    postsDiv.innerHTML = '<div class="loading">❌ حدث خطأ، تأكد من الاتصال وأعد المحاولة</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ توليد المحتوى الآن';
+}
+
+function copyPost(btn, i) {
+  const postDiv = btn.parentElement;
+  const text = postDiv.innerText.replace('📋 نسخ', '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ تم النسخ';
+    setTimeout(() => btn.textContent = '📋 نسخ', 2000);
+  });
+}
+</script>
+</body>
+</html>
